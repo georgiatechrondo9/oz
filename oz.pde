@@ -33,6 +33,7 @@ int hourValue = 0;
 int secondValue = 0;
 
 boolean timerOn = false;
+String currentTts = "";
 //end global variables
 
 //runs once when the Play button above is pressed
@@ -81,8 +82,14 @@ void setup() {
   //create ui
   p5.addButton("Play")
     .setPosition(width / 2 - 50, 100)
-    .setSize(width / 2 - 50, 20)
-    .setLabel("Play")
+    .setSize(20, 20)
+    .setLabel("Sound")
+    .activateBy((ControlP5.RELEASE));
+
+  p5.addButton("Text")
+    .setPosition(width / 2 + 30, 100)
+    .setSize(20, 20)
+    .setLabel("Text")
     .activateBy((ControlP5.RELEASE));
 
   p5.addSlider("GainSlider")
@@ -130,14 +137,25 @@ void setup() {
      .setDirection(Controller.HORIZONTAL) // change the control direction to left/right
      .setValue(0);
 
-  List l = Arrays.asList("cutting", "frying", "oven");
+  List sound = Arrays.asList("cutting", "frying", "oven");
   /* add a ScrollableList, by default it behaves like a DropdownList */
-  p5.addScrollableList("dropdown")
-     .setPosition(width / 2 - 50, 120)
+  p5.addScrollableList("sounds")
+     .setPosition(width / 2 - 110, 120)
      .setSize(width / 2 - 50, 100)
      .setBarHeight(20)
      .setItemHeight(20)
-     .addItems(l)
+     .addItems(sound)
+     // .setType(ScrollableList.LIST) // currently supported DROPDOWN and LIST
+     ;
+
+  List reminder = Arrays.asList("contamination", "frying", "done");
+  /* add a ScrollableList, by default it behaves like a DropdownList */
+  p5.addScrollableList("reminder")
+     .setPosition(width / 2, 120)
+     .setSize(width / 2 - 50, 100)
+     .setBarHeight(20)
+     .setItemHeight(20)
+     .addItems(reminder)
      // .setType(ScrollableList.LIST) // currently supported DROPDOWN and LIST
      ;
 
@@ -146,7 +164,7 @@ void setup() {
       .setSize(20, 10)
       .addItem("Enable Mic", 0.0);
 
-  // p5.addScrollableList("dropdown")
+  // p5.addScrollableList("sounds")
   //    .setPosition(width / 2 - 50, 120)
   //    .setSize(width / 2 - 50, 20)
   //    .setBarHeight(20)
@@ -163,6 +181,11 @@ public void Play(int value) {
   println("pressed play");
   player.setToLoopStart();
   player.start();
+}
+
+public void Text(int value) {
+  println("pressed text");
+  tts.speak(currentTts);
 }
 
 public void reset() {
@@ -195,9 +218,45 @@ public void GainSlider(float value) {
   gainGlide.setValue(value / 100.0);
 }
 
-void dropdown(int n) {
+void reminder(int n) {
   /* request the selected item based on index n */
-  Map<String, Object> m = p5.get(ScrollableList.class, "dropdown").getItem(n);
+  Map<String, Object> m = p5.get(ScrollableList.class, "reminder").getItem(n);
+  Set<Map.Entry<String, Object>> set = m.entrySet();
+  for (Map.Entry<String, Object> e : set) {
+    if (e.getKey().equals("text")) {
+      println(e.getValue());
+    }
+  }
+
+  switch(n) {
+    case 0:
+      currentTts = "remember to be clean after cutting raw meat";
+      break;
+    case 1:
+      currentTts = "check on the katsu";
+      break;
+    case 2:
+      currentTts = "katsu should be done when golden brown";
+      break;
+  }
+
+  /* here an item is stored as a Map  with the following key-value pairs:
+   * name, the given name of the item
+   * text, the given text of the item by default the same as name
+   * value, the given value of the item, can be changed by using .getItem(n).put("value", "abc"); a value here is of type Object therefore can be anything
+   * color, the given color of the item, how to change, see below
+   * view, a customizable view, is of type CDrawable
+   */
+
+  CColor c = new CColor();
+  c.setBackground(color(255,0,0));
+  p5.get(ScrollableList.class, "reminder").getItem(n).put("color", c);
+
+}
+
+void sounds(int n) {
+  /* request the selected item based on index n */
+  Map<String, Object> m = p5.get(ScrollableList.class, "sounds").getItem(n);
   Set<Map.Entry<String, Object>> set = m.entrySet();
   for (Map.Entry<String, Object> e : set) {
     if (e.getKey().equals("text")) {
@@ -216,43 +275,43 @@ void dropdown(int n) {
       player = oven;
       break;
   }
-  
+
   /* here an item is stored as a Map  with the following key-value pairs:
    * name, the given name of the item
    * text, the given text of the item by default the same as name
    * value, the given value of the item, can be changed by using .getItem(n).put("value", "abc"); a value here is of type Object therefore can be anything
    * color, the given color of the item, how to change, see below
-   * view, a customizable view, is of type CDrawable 
+   * view, a customizable view, is of type CDrawable
    */
-  
+
   CColor c = new CColor();
   c.setBackground(color(255,0,0));
-  p5.get(ScrollableList.class, "dropdown").getItem(n).put("color", c);
-  
+  p5.get(ScrollableList.class, "sounds").getItem(n).put("color", c);
+
 }
 
 // void keyPressed() {
 //   switch(key) {
 //     case('1'):
 //       /* make the ScrollableList behave like a ListBox */
-//       p5.get(ScrollableList.class, "dropdown").setType(ControlP5.LIST);
+//       p5.get(ScrollableList.class, "sounds").setType(ControlP5.LIST);
 //       break;
 //     case('2'):
 //       /* make the ScrollableList behave like a DropdownList */
-//       p5.get(ScrollableList.class, "dropdown").setType(ControlP5.DROPDOWN);
+//       p5.get(ScrollableList.class, "sounds").setType(ControlP5.DROPDOWN);
 //       break;
 //     case('3'):
 //       /*change content of the ScrollableList */
 //       List l = Arrays.asList("a-1", "b-1", "c-1", "d-1", "e-1", "f-1", "g-1", "h-1", "i-1", "j-1", "k-1");
-//       p5.get(ScrollableList.class, "dropdown").setItems(l);
+//       p5.get(ScrollableList.class, "sounds").setItems(l);
 //       break;
 //     case('4'):
 //       /* remove an item from the ScrollableList */
-//       p5.get(ScrollableList.class, "dropdown").removeItem("k-1");
+//       p5.get(ScrollableList.class, "sounds").removeItem("k-1");
 //       break;
 //     case('5'):
 //       /* clear the ScrollableList */
-//       p5.get(ScrollableList.class, "dropdown").clear();
+//       p5.get(ScrollableList.class, "sounds").clear();
 //       break;
 //   }
 // }
